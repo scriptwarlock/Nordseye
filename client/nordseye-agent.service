@@ -1,0 +1,27 @@
+[Unit]
+Description=Nordseye Client Agent
+After=network.target graphical-session.target
+Wants=network.target
+
+[Service]
+# ── Change these to match each client PC ────────────────────────────────────
+WorkingDirectory=/home/whitehat/Documents/nordseye/nordseye-networked/client
+ExecStart=/usr/bin/python3 /home/whitehat/Documents/nordseye/nordseye-networked/client/agent.py --server 192.168.122.1 --name "PC 01"
+# ─────────────────────────────────────────────────────────────────────────────
+
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=0
+
+StandardOutput=journal
+StandardError=journal
+
+# Must run as the desktop user so tkinter can reach the display
+User=whitehat
+Environment=PYTHONUNBUFFERED=1
+# Set DISPLAY so the tkinter overlay works when launched by systemd
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/whitehat/.Xauthority
+
+[Install]
+WantedBy=graphical-session.target

@@ -1,0 +1,25 @@
+[Unit]
+Description=Sync-Space Cyber Cafe Server
+After=network.target
+Wants=network.target
+
+[Service]
+# ── Change these two paths to match your setup ──────────────────────────────
+WorkingDirectory=/home/whitehat/Documents/nordseye/nordseye-networked/server
+ExecStart=/usr/bin/python3 /home/whitehat/Documents/nordseye/nordseye-networked/server/server.py
+# ─────────────────────────────────────────────────────────────────────────────
+
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=0
+
+# Log to journald (view with: journalctl -u nordseye-server -f)
+StandardOutput=journal
+StandardError=journal
+
+# Run as your own user (safer than root)
+User=whitehat
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

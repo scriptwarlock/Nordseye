@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Nordseye — Cyber Cafe Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap"/>
+<style>
+/* ═══ § 1. RESET & ROOT ═══════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070a10;--surface:#0c1018;--surface2:#111620;--surface3:#161c28;--surface4:#1c2333;
+  --border:rgba(255,255,255,0.05);--border2:rgba(255,255,255,0.09);--border3:rgba(255,255,255,0.16);
+  --accent:#3d8ef5;--accent2:#7c5cfc;
+  --green:#16c968;--amber:#f5a623;--red:#f04444;
+  --text:#dde3f2;--text2:#7e8ba5;--text3:#3e4a62;
+  --radius:14px;--radius-sm:9px;--radius-xs:6px;
+  --font:'Outfit',system-ui,sans-serif;--mono:'DM Mono',monospace;--display:'Syne',system-ui,sans-serif;
+  --sidebar-w:236px;--ease-out:cubic-bezier(0.22,1,0.36,1);
+}
+html,body{height:100%;background:var(--bg)}
+body{font-family:var(--font);color:var(--text);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased}
+#app{display:flex;height:100vh;overflow:hidden}
+/* ═══ § 2. SIDEBAR ════════════════════════════════════════════════════════ */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:relative;overflow:hidden}
+.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:300px;background:radial-gradient(ellipse at 50% -10%,rgba(61,142,245,.1) 0%,transparent 68%);pointer-events:none}
+.sidebar::after{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.018) 1px,transparent 1px);background-size:18px 18px;pointer-events:none;z-index:0}
+.logo{padding:22px 20px 16px;border-bottom:1px solid var(--border);position:relative;z-index:1}
+.logo-mark{display:flex;align-items:center;gap:0;margin-bottom:3px}
+.logo-mark h1{font-family:var(--display);font-size:20px;font-weight:800;letter-spacing:-.5px;color:var(--text)}
+.logo-mark h1 span{color:var(--accent)}
+.logo-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);margin-left:8px;margin-top:1px;animation:pulse-dot 2.4s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.65)}}
+.logo-sub{font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.nav{padding:10px 0;flex:1;overflow-y:auto;scrollbar-width:none;position:relative;z-index:1}
+.nav::-webkit-scrollbar{display:none}
+.nav-section{padding:18px 20px 5px;font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.3px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:9px 20px;cursor:pointer;color:var(--text2);font-size:12.5px;font-weight:500;border-left:2px solid transparent;transition:all .18s var(--ease-out);position:relative}
+.nav-item:hover{background:rgba(255,255,255,.03);color:var(--text);border-left-color:var(--border3)}
+.nav-item.active{background:linear-gradient(90deg,rgba(61,142,245,.09),transparent);color:var(--accent);border-left-color:var(--accent);font-weight:600}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;opacity:.7;transition:opacity .15s}
+.nav-item.active svg{opacity:1}
+.nav-badge{margin-left:auto;background:var(--accent);color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;animation:badge-pop .3s var(--ease-out)}
+@keyframes badge-pop{from{transform:scale(0)}to{transform:scale(1)}}
+.sidebar-footer{padding:14px 16px;border-top:1px solid var(--border);background:var(--surface);position:relative;z-index:1}
+.emp-badge{display:flex;align-items:center;gap:10px}
+.emp-avatar{width:34px;height:34px;border-radius:11px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:12px;font-weight:700;color:#fff;box-shadow:0 2px 12px rgba(61,142,245,.3)}
+.emp-info p{font-size:12px;font-weight:600;color:var(--text)}
+.emp-info span{font-size:10px;color:var(--text3);text-transform:capitalize}
+/* ═══ § 3. MAIN ═══════════════════════════════════════════════════════════ */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.topbar{padding:0 26px;height:52px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:relative;flex-shrink:0}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,var(--accent) 50%,transparent 100%);opacity:.2}
+.topbar-title{font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:-.1px}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.content{flex:1;overflow-y:auto;padding:24px;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent}
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-thumb{background:var(--surface4);border-radius:4px}
+/* ═══ § 4. BUTTONS ════════════════════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s var(--ease-out);white-space:nowrap;letter-spacing:.01em}
+.btn:hover{background:var(--surface3);border-color:var(--border3);transform:translateY(-1px)}
+.btn:active{transform:translateY(0);transition-duration:.05s}
+.btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 12px rgba(61,142,245,.25)}
+.btn-primary:hover{background:#2f7fe8;border-color:#2f7fe8;box-shadow:0 4px 18px rgba(61,142,245,.38)}
+.btn-success{background:rgba(22,201,104,.1);border-color:rgba(22,201,104,.2);color:var(--green)}
+.btn-success:hover{background:rgba(22,201,104,.18);border-color:rgba(22,201,104,.35);box-shadow:0 3px 12px rgba(22,201,104,.15)}
+.btn-danger{background:rgba(240,68,68,.08);border-color:rgba(240,68,68,.18);color:var(--red)}
+.btn-danger:hover{background:rgba(240,68,68,.16);border-color:rgba(240,68,68,.32);box-shadow:0 3px 12px rgba(240,68,68,.15)}
+.btn-amber{background:rgba(245,166,35,.1);border-color:rgba(245,166,35,.2);color:var(--amber)}
+.btn-amber:hover{background:rgba(245,166,35,.18);border-color:rgba(245,166,35,.35);box-shadow:0 3px 12px rgba(245,166,35,.15)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-sm svg{width:12px;height:12px}
+.btn svg{width:13px;height:13px}
+.btn-icon{padding:6px;border-radius:8px}
+/* ═══ § 5. CARDS ══════════════════════════════════════════════════════════ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;transition:border-color .2s}
+.card:hover{border-color:var(--border2)}
+.card-title{font-family:var(--display);font-size:10.5px;font-weight:700;margin-bottom:14px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px}
+/* ═══ § 6. STAT CARDS ════════════════════════════════════════════════════ */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s var(--ease-out),box-shadow .2s;cursor:default}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.25)}
+.stat-card::before{content:'';position:absolute;top:-10px;right:-10px;width:70px;height:70px;border-radius:50%;filter:blur(30px);opacity:.45;transition:opacity .3s}
+.stat-card:hover::before{opacity:.7}
+.stat-card:nth-child(1)::before{background:var(--accent)}
+.stat-card:nth-child(2)::before{background:var(--green)}
+.stat-card:nth-child(3)::before{background:var(--amber)}
+.stat-card:nth-child(4)::before{background:var(--accent2)}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;opacity:.5}
+.stat-card:nth-child(1)::after{background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.stat-card:nth-child(2)::after{background:linear-gradient(90deg,transparent,var(--green),transparent)}
+.stat-card:nth-child(3)::after{background:linear-gradient(90deg,transparent,var(--amber),transparent)}
+.stat-card:nth-child(4)::after{background:linear-gradient(90deg,transparent,var(--accent2),transparent)}
+.stat-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.9px;margin-bottom:9px}
+.stat-value{font-family:var(--display);font-size:30px;font-weight:800;letter-spacing:-1.5px;line-height:1;animation:count-in .4s var(--ease-out)}
+@keyframes count-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:5px}
+/* ═══ § 7. TERMINAL CARDS ════════════════════════════════════════════════ */
+.terminals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.terminal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 14px 12px;cursor:pointer;transition:all .22s var(--ease-out);position:relative;overflow:hidden;animation:card-appear .3s var(--ease-out) both}
+@keyframes card-appear{from{opacity:0;transform:scale(.95) translateY(8px)}to{opacity:1;transform:none}}
+.terminal-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--text3);border-radius:var(--radius) var(--radius) 0 0;transition:background .22s,box-shadow .22s}
+.terminal-card:hover{background:var(--surface2);border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.28)}
+.terminal-card.active::before{background:var(--green);box-shadow:0 0 10px var(--green)}
+.terminal-card.active{border-color:rgba(22,201,104,.18);background:rgba(22,201,104,.025)}
+.terminal-card.paused::before{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.terminal-card.paused{border-color:rgba(245,166,35,.18);background:rgba(245,166,35,.025)}
+.terminal-card.inactive::before{background:var(--text3)}
+.terminal-card.offline{opacity:.35;filter:grayscale(.7);pointer-events:none}
+.terminal-num{font-size:9.5px;color:var(--text3);font-family:var(--mono);margin-bottom:6px;letter-spacing:.03em}
+.terminal-name{font-family:var(--display);font-size:13.5px;font-weight:700;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.terminal-status{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+.status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;transition:box-shadow .3s}
+.dot-active{background:var(--green);box-shadow:0 0 6px var(--green),0 0 14px rgba(22,201,104,.4);animation:dot-live 2s ease-in-out infinite}
+@keyframes dot-live{0%,100%{box-shadow:0 0 6px var(--green),0 0 14px rgba(22,201,104,.4)}50%{box-shadow:0 0 8px var(--green),0 0 22px rgba(22,201,104,.6)}}
+.dot-paused{background:var(--amber);box-shadow:0 0 5px var(--amber);animation:dot-pause 1.4s ease-in-out infinite}
+@keyframes dot-pause{0%,100%{opacity:1}50%{opacity:.35}}
+.dot-inactive{background:var(--text3)}
+.dot-offline{background:var(--red)}
+.terminal-time{font-family:var(--mono);font-size:11.5px;color:var(--text2);margin-top:7px;font-weight:500;letter-spacing:.02em}
+.terminal-owed{font-family:var(--mono);font-size:12.5px;font-weight:700;margin-top:4px;color:var(--green)}
+.platform-icon{position:absolute;top:10px;right:10px;font-size:11px;color:var(--text3)}
+.notif{position:absolute;top:9px;right:9px;width:19px;height:19px;background:var(--red);border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 8px rgba(240,68,68,.5)}
+/* ═══ § 8. PANEL + DETAIL ════════════════════════════════════════════════ */
+.panel-layout{display:flex;gap:18px}
+.panel-main{flex:1;min-width:0}
+.panel-right{width:295px;flex-shrink:0;display:flex;flex-direction:column;gap:14px}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.detail-row:last-child{border-bottom:none}
+.detail-row span:first-child{color:var(--text2)}
+/* ═══ § 9. TABLES ════════════════════════════════════════════════════════ */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:10px 14px;border-bottom:1px solid var(--border);font-family:var(--display)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12.5px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+/* ═══ § 10. BADGES ═══════════════════════════════════════════════════════ */
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.badge-active{background:rgba(22,201,104,.1);color:var(--green);border:1px solid rgba(22,201,104,.18)}
+.badge-inactive{background:var(--surface3);color:var(--text3);border:1px solid var(--border)}
+.badge-paused{background:rgba(245,166,35,.1);color:var(--amber);border:1px solid rgba(245,166,35,.18)}
+.badge-offline{background:rgba(240,68,68,.1);color:var(--red);border:1px solid rgba(240,68,68,.18)}
+.badge-admin{background:rgba(124,92,252,.1);color:var(--accent2);border:1px solid rgba(124,92,252,.18)}
+.badge-cashier{background:rgba(61,142,245,.1);color:var(--accent);border:1px solid rgba(61,142,245,.18)}
+/* ═══ § 11. FORMS ════════════════════════════════════════════════════════ */
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;color:var(--text2);font-weight:600;margin-bottom:5px;display:block;letter-spacing:.03em}
+.form-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;transition:border-color .18s,box-shadow .18s;-webkit-appearance:none;appearance:none}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(61,142,245,.12)}
+.form-input::placeholder{color:var(--text3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+select.form-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a5570' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px;cursor:pointer}
+select.form-input option{background:var(--surface3);color:var(--text)}
+/* ═══ § 12. MODALS ═══════════════════════════════════════════════════════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:100;animation:overlay-in .18s ease}
+@keyframes overlay-in{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:28px;width:450px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04);animation:modal-in .2s var(--ease-out)}
+@keyframes modal-in{from{transform:translateY(14px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+.modal-title{font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:-.2px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+/* ═══ § 13. TOASTS ═══════════════════════════════════════════════════════ */
+#toast-root{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;font-size:12.5px;font-weight:500;background:var(--surface3);border:1px solid var(--border2);color:var(--text);box-shadow:0 8px 30px rgba(0,0,0,.5);animation:toast-in .25s var(--ease-out);pointer-events:all;min-width:220px;max-width:320px;cursor:pointer}
+@keyframes toast-in{from{opacity:0;transform:translateX(20px) scale(.95)}to{opacity:1;transform:none}}
+.toast.out{animation:toast-out .2s ease forwards}
+@keyframes toast-out{to{opacity:0;transform:translateX(20px) scale(.95)}}
+.toast-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.toast-success .toast-dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+.toast-error .toast-dot{background:var(--red);box-shadow:0 0 6px var(--red)}
+.toast-info .toast-dot{background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.toast-warn .toast-dot{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+/* ═══ § 14. LOGIN ════════════════════════════════════════════════════════ */
+.login-screen{display:flex;align-items:center;justify-content:center;height:100vh;background:var(--bg);position:relative;overflow:hidden}
+.login-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 30%,rgba(61,142,245,.06) 0%,transparent 60%),radial-gradient(ellipse at 70% 70%,rgba(124,92,252,.05) 0%,transparent 60%)}
+.login-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px;mask-image:radial-gradient(ellipse at center,black 20%,transparent 75%)}
+.login-card{background:rgba(12,16,24,.92);border:1px solid var(--border2);border-radius:18px;padding:42px 40px 36px;width:390px;text-align:center;box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.05),inset 0 1px 0 rgba(255,255,255,.06);position:relative;z-index:1;animation:modal-in .4s var(--ease-out);backdrop-filter:blur(20px)}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(61,142,245,.6),rgba(124,92,252,.4),transparent);border-radius:18px 18px 0 0}
+.login-icon{width:52px;height:52px;border-radius:15px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:22px;box-shadow:0 4px 20px rgba(61,142,245,.35)}
+.login-logo{font-family:var(--display);font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:4px;color:var(--text)}
+.login-logo span{color:var(--accent)}
+.login-sub{font-size:10.5px;color:var(--text3);margin-bottom:28px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.login-card .form-group{text-align:left}
+.login-err{color:var(--red);font-size:12px;margin:2px 0 10px;font-weight:500;background:rgba(240,68,68,.08);border:1px solid rgba(240,68,68,.15);border-radius:7px;padding:7px 12px}
+/* ═══ § 15. WS BAR + MISC ════════════════════════════════════════════════ */
+.ws-bar{padding:6px 16px;font-size:11.5px;text-align:center;font-weight:600;letter-spacing:.02em;flex-shrink:0}
+.ws-connecting{background:rgba(245,166,35,.08);color:var(--amber);border-bottom:1px solid rgba(245,166,35,.15)}
+.ws-error{background:rgba(240,68,68,.08);color:var(--red);border-bottom:1px solid rgba(240,68,68,.15)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--surface4);border-radius:4px}
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;background:var(--surface3);color:var(--text2);border:1px solid var(--border);font-weight:500}
+.info-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text2);font-weight:500}
+.sep{height:1px;background:var(--border);margin:16px 0}
+.row{display:flex;gap:10px;align-items:center}.flex-1{flex:1}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.text-green{color:var(--green)}.text-red{color:var(--red)}.text-amber{color:var(--amber)}.text-accent{color:var(--accent)}.text-muted{color:var(--text2)}
+.fw-600{font-weight:600}.fw-700{font-weight:700}.mb-12{margin-bottom:12px}.mt-10{margin-top:10px}
+.timer{font-family:var(--mono);font-weight:500}
+.conn-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.conn-dot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:dot-live 2s infinite}
+.conn-dot.dead{background:var(--red)}
+.empty-state{text-align:center;padding:70px 20px;color:var(--text3)}
+.empty-state h3{font-family:var(--display);font-size:14px;color:var(--text2);margin:14px 0 6px}
+.empty-state p{font-size:12px}
+.big-timer{font-family:var(--mono);font-size:46px;font-weight:500;letter-spacing:-2px;line-height:1}
+@keyframes timer-glow{0%,100%{text-shadow:0 0 20px currentColor}50%{text-shadow:0 0 40px currentColor,0 0 70px currentColor}}
+.timer-urgent{animation:timer-glow 1s ease-in-out infinite}
+@media print{body{background:white;color:black}.sidebar,.topbar,.btn,.nav,.ws-bar,.modal-overlay,.modal,#toast-root{display:none!important}.main{overflow:visible!important;height:auto!important;display:block!important}.content{padding:0!important;overflow:visible!important}.card{border:1px solid #ddd;box-shadow:none;margin-bottom:20px;page-break-inside:avoid}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:5px;color:black}.text-green,.text-red,.text-amber,.text-accent,.text-muted,.badge{color:black!important;background:transparent!important}.status-dot,.conn-dot{display:none!important}#app{display:block!important;height:auto!important;overflow:visible!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast-root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 1 — CORE HOOKS & UTILITIES
+═══════════════════════════════════════════════════════════════ */
+const {useState,useEffect,useRef,useCallback} = React;
+const WS_HOST = location.hostname && location.hostname !== "" ? location.hostname : "127.0.0.1";
+const WS_URL  = `ws://${WS_HOST}:8766`;
+
+function toast(msg, type="info", duration=3200) {
+  const el = document.createElement("div");
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<span class="toast-dot"></span><span>${msg}</span>`;
+  document.getElementById("toast-root").appendChild(el);
+  const remove = () => { el.classList.add("out"); setTimeout(()=>el.remove(),220); };
+  el.onclick = remove;
+  setTimeout(remove, duration);
+}
+
+function useServerConnection() {
+  const [state, setState]       = useState(null);
+  const [wsStatus, setWsStatus] = useState("connecting");
+  const wsRef  = useRef(null);
+  const tick   = useRef(Date.now());
+  const [, forceRender] = useState(0);
+  useEffect(()=>{
+    const id = setInterval(()=>{ tick.current = Date.now(); forceRender(n=>n+1); },1000);
+    return ()=>clearInterval(id);
+  },[]);
+  const connect = useCallback(()=>{
+    if (wsRef.current && wsRef.current.readyState < 2) return;
+    const ws = new WebSocket(WS_URL);
+    wsRef.current = ws;
+    setWsStatus("connecting");
+    ws.onopen  = ()=>setWsStatus("connected");
+    ws.onclose = ()=>{ setWsStatus("error"); setTimeout(connect,4000); };
+    ws.onerror = ()=>setWsStatus("error");
+    ws.onmessage = (e)=>{
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.type==="state") setState(msg);
+        else if (msg.type==="login_result") ws._loginCb && ws._loginCb(msg);
+        else if (msg.type==="ack" && !msg.ok && msg.error) toast(msg.error,"error");
+      } catch {}
+    };
+  },[]);
+  useEffect(()=>{ connect(); },[connect]);
+  const send = useCallback((msg)=>{
+    const ws = wsRef.current;
+    if (ws && ws.readyState===1) ws.send(JSON.stringify(msg));
+  },[]);
+  const login = useCallback((username,password)=>{
+    return new Promise(resolve=>{
+      const ws = wsRef.current;
+      if (!ws){ resolve({ok:false}); return; }
+      ws._loginCb = (r)=>{ ws._loginCb=null; resolve(r); };
+      ws.send(JSON.stringify({cmd:"login",username,password}));
+    });
+  },[]);
+  return {state, wsStatus, send, login, tick: tick.current};
+}
+
+const fmt = (n, cur="₱") => `${cur}${Number(n||0).toFixed(2)}`;
+const fmtClock = (ms) => {
+  if (!ms || ms<=0) return "00:00";
+  const t=Math.floor(ms/1000), h=Math.floor(t/3600), m=Math.floor((t%3600)/60), s=t%60;
+  if (h>0) return [h,m,s].map(x=>String(x).padStart(2,"0")).join(":");
+  return [m,s].map(x=>String(x).padStart(2,"0")).join(":");
+};
+const fmtDuration = (mins) => {
+  if (!mins && mins!==0) return "—";
+  const h=Math.floor(mins/60), m=mins%60;
+  if (h>0&&m>0) return `${h}h ${m}m`;
+  if (h>0) return `${h}h`;
+  return `${m}m`;
+};
+const fmtElapsed = (ms) => fmtDuration(Math.max(0,Math.floor((ms||0)/60000)));
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 2 — ICONS
+═══════════════════════════════════════════════════════════════ */
+const SVG = ({d,size=14,style})=>
+  React.createElement("svg",{width:size,height:size,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.85,strokeLinecap:"round",strokeLinejoin:"round",style},
+    React.createElement("path",{d}));
+const I = {
+  monitor:"M8 21h8m-4-4v4M3 5a2 2 0 012-2h14a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2V5z",
+  dollar:"M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6",
+  users:"M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75",
+  package:"M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z",
+  chart:"M18 20V10m-6 10V4M6 20v-6",
+  settings:"M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z",
+  play:"M5 3l14 9-14 9V3z",stop:"M18 6L6 18M6 6l12 12",pause:"M10 9v6m4-6v6",
+  msg:"M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z",
+  plus:"M12 5v14M5 12h14",
+  trash:"M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2",
+  edit:"M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z",
+  lock:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+  unlock:"M7 11V7a5 5 0 019.9-1M12 17v-2m-6 6h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z",
+  logout:"M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9",
+  clock:"M12 2a10 10 0 100 20A10 10 0 0012 2zm0 5v5l4 2",
+  wifi:"M1.42 9a16 16 0 0121.16 0M5 12.55a11 11 0 0114.08 0M8.53 16.11a6 6 0 016.95 0M12 20h.01",
+  alert:"M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4m0 4h.01",
+  ticket:"M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z",
+  print:"M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-8 0v4h8v-4H6z",
+  check:"M20 6L9 17l-5-5", x:"M18 6L6 18M6 6l12 12",
+};
+const Ico = ({name,size=14,style})=>React.createElement(SVG,{d:I[name]||I.alert,size,style});
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 3 — SHARED COMPONENTS
+═══════════════════════════════════════════════════════════════ */
+function Modal({title,children,onClose,footer}) {
+  useEffect(()=>{
+    const h=(e)=>{ if(e.key==="Escape") onClose(); };
+    document.addEventListener("keydown",h);
+    return ()=>document.removeEventListener("keydown",h);
+  },[onClose]);
+  return React.createElement("div",{className:"modal-overlay",onClick:e=>e.target===e.currentTarget&&onClose()},
+    React.createElement("div",{className:"modal"},
+      React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}},
+        React.createElement("div",{className:"modal-title"},title),
+        React.createElement("button",{className:"btn btn-sm btn-icon",onClick:onClose,style:{color:"var(--text3)"}},React.createElement(Ico,{name:"x",size:13}))
+      ),
+      children,
+      footer&&React.createElement("div",{className:"modal-footer"},footer)
+    )
+  );
+}
+
+function ConfirmBtn({onClick,className,children}) {
+  const [c,setC]=useState(false);
+  useEffect(()=>{ if(!c) return; const t=setTimeout(()=>setC(false),2500); return()=>clearTimeout(t); },[c]);
+  if (c) return React.createElement("button",{className:"btn btn-danger btn-sm",onClick:()=>{setC(false);onClick();}},"Sure?");
+  return React.createElement("button",{className:className||"btn btn-sm btn-danger",onClick:()=>setC(true)},
+    children||React.createElement(Ico,{name:"trash"}));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 4 — TERMINAL MODAL
+═══════════════════════════════════════════════════════════════ */
+function TerminalModal({pc,conn,onClose}) {
+  const {state,send,tick}=conn;
+  const cur=state?.settings?.currency||"₱";
+  const [tab,setTab]=useState("session");
+  const [selTariff,setSelTariff]=useState(pc.tariff||state?.tariffs?.[0]?.id||"t1");
+  const [selMember,setSelMember]=useState(pc.member||"");
+  const [selProd,setSelProd]=useState("");
+  const [prodQty,setProdQty]=useState(1);
+  const [msgText,setMsgText]=useState("");
+  const [lastSession,setLastSession]=useState(null);
+
+  const tariff=state?.tariffs?.find(t=>t.id===(pc.tariff||selTariff))||state?.tariffs?.[0]||{name:"—",hourPrice:0};
+  const member=pc.member?state?.members?.find(m=>m.id===pc.member):null;
+  const elapsed=pc.startTime?tick-pc.startTime*1000:0;
+  const timeoutMs=pc.timeout?pc.timeout*60000:null;
+  const remaining=timeoutMs?Math.max(0,timeoutMs-elapsed):null;
+  const isUrgent=remaining!==null&&remaining<120000;
+  const countdownColor=remaining!==null?(remaining<120000?"var(--red)":remaining<300000?"var(--amber)":"var(--green)"):"var(--accent)";
+  const quickTimes=[10,20,30,60];
+
+  const prevStatus=useRef(pc.status);
+  useEffect(()=>{
+    if(prevStatus.current!=="inactive"&&pc.status==="inactive"){
+      const last=state?.sessions?.[0];
+      if(last&&last.terminal===pc.id) setLastSession(last);
+    }
+    prevStatus.current=pc.status;
+  },[pc.status,state?.sessions]);
+
+  const tabB=(id,lbl)=>React.createElement("button",{
+    key:id,className:"btn"+(tab===id?" btn-primary":""),style:{fontSize:"11.5px",borderRadius:7},onClick:()=>setTab(id)},lbl);
+
+  const doStart=(timeout=null)=>{
+    send({cmd:"start",pcId:pc.id,tariff:selTariff,member:selMember||null,...(timeout?{timeout}:{})});
+    toast(`Session started on ${pc.name}`,"success");
+    onClose();
+  };
+
+  const SessionSummary=()=>{
+    const s=lastSession; if(!s) return null;
+    const prodCost=(s.products||[]).reduce((a,p)=>a+p.price*p.amount,0);
+    const timeCost=(s.price||0)-prodCost;
+    return React.createElement("div",null,
+      React.createElement("div",{className:"card",style:{marginBottom:12,background:"rgba(22,201,104,.04)",border:"1px solid rgba(22,201,104,.15)"}},
+        React.createElement("div",{className:"card-title"},"Session Summary"),
+        React.createElement("div",{className:"detail-row"},React.createElement("span",null,"Duration"),React.createElement("span",{style:{fontWeight:600}},fmtDuration(s.duration||0))),
+        React.createElement("div",{className:"detail-row"},React.createElement("span",null,"Time Cost"),React.createElement("span",{style:{color:"var(--accent)",fontFamily:"var(--mono)"}},fmt(timeCost,cur))),
+        (s.products||[]).map((p,i)=>React.createElement("div",{key:i,className:"detail-row"},
+          React.createElement("span",null,`${p.name} x${p.amount}`),
+          React.createElement("span",{style:{color:"var(--amber)",fontFamily:"var(--mono)"}},fmt(p.price*p.amount,cur))
+        )),
+        React.createElement("div",{style:{height:1,background:"var(--border)",margin:"10px 0"}}),
+        React.createElement("div",{className:"detail-row"},
+          React.createElement("span",{style:{fontWeight:700,fontSize:14}},"Total Due"),
+          React.createElement("span",{style:{fontWeight:800,fontSize:22,color:"var(--green)",fontFamily:"var(--mono)"}},fmt(s.price,cur))
+        )
+      ),
+      React.createElement("button",{className:"btn",style:{width:"100%",justifyContent:"center"},onClick:()=>setLastSession(null)},"Dismiss")
+    );
+  };
+
+  return React.createElement(Modal,{
+    title:React.createElement("span",{style:{display:"flex",alignItems:"center",gap:10}},
+      pc.name,React.createElement("span",{className:`badge badge-${pc.connected?pc.status:"offline"}`},pc.connected?pc.status:"offline")
+    ),
+    onClose,
+    footer:React.createElement("button",{className:"btn",style:{justifyContent:"center"},onClick:onClose},"Close")
+  },
+    React.createElement("div",{style:{display:"flex",gap:6,marginBottom:18}},tabB("session","Session"),tabB("products","Products"),tabB("control","Control")),
+
+    tab==="session"&&React.createElement("div",null,
+      lastSession&&pc.status==="inactive"
+        ?React.createElement(SessionSummary,null)
+        :React.createElement("div",null,
+          pc.status!=="inactive"&&React.createElement("div",{style:{textAlign:"center",marginBottom:16,padding:"20px 0",background:"var(--surface2)",borderRadius:"var(--radius)",border:"1px solid var(--border)"}},
+            remaining!==null
+              ?React.createElement("div",null,
+                  React.createElement("div",{style:{fontSize:10,color:"var(--text3)",fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:6}},"Time Remaining"),
+                  React.createElement("div",{className:"big-timer"+(isUrgent?" timer-urgent":""),style:{color:countdownColor}},fmtClock(remaining))
+                )
+              :React.createElement("div",null,
+                  React.createElement("div",{style:{fontSize:10,color:"var(--text3)",fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:6}},"Elapsed"),
+                  React.createElement("div",{className:"big-timer",style:{color:"var(--accent)"}},fmtClock(elapsed))
+                ),
+            React.createElement("div",{style:{fontSize:22,fontWeight:700,color:"var(--green)",marginTop:10,fontFamily:"var(--mono)"}},fmt(pc.owed,cur)," owed")
+          ),
+          React.createElement("div",{className:"card mb-12"},
+            React.createElement("div",{className:"detail-row"},React.createElement("span",null,"Tariff"),React.createElement("span",null,tariff.name," ",React.createElement("span",{style:{color:"var(--text3)",marginLeft:6,fontFamily:"var(--mono)",fontSize:11}},`${cur}${tariff.hourPrice}/hr`))),
+            React.createElement("div",{className:"detail-row"},React.createElement("span",null,"Member"),React.createElement("span",null,member?.name||React.createElement("span",{className:"text-muted"},"Guest"))),
+            React.createElement("div",{className:"detail-row"},React.createElement("span",null,"IP"),React.createElement("span",{style:{fontFamily:"var(--mono)",color:"var(--text2)",fontSize:11}},pc.ip||"—"))
+          ),
+          pc.status==="inactive"&&React.createElement("div",null,
+            React.createElement("div",{className:"form-group"},
+              React.createElement("label",{className:"form-label"},"Tariff"),
+              React.createElement("select",{className:"form-input",value:selTariff,onChange:e=>setSelTariff(e.target.value)},
+                state?.tariffs?.map(t=>React.createElement("option",{key:t.id,value:t.id},`${t.name} — ${cur}${t.hourPrice}/hr`))
+              )
+            ),
+            React.createElement("div",{className:"form-group"},
+              React.createElement("label",{className:"form-label"},"Member (optional)"),
+              React.createElement("select",{className:"form-input",value:selMember,onChange:e=>setSelMember(e.target.value)},
+                React.createElement("option",{value:""},"— Guest —"),
+                state?.members?.map(m=>React.createElement("option",{key:m.id,value:m.id},`${m.name} (${cur}${m.credit})`))
+              )
+            ),
+            React.createElement("div",{className:"form-group"},
+              React.createElement("label",{className:"form-label"},"Quick Start (timed)"),
+              React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7}},
+                quickTimes.map(mins=>{
+                  const t=state?.tariffs?.find(t=>t.id===selTariff)||{hourPrice:0};
+                  const cost=(mins/60)*t.hourPrice;
+                  return React.createElement("button",{key:mins,className:"btn btn-primary",
+                    style:{flexDirection:"column",padding:"9px 4px",fontSize:"11px",lineHeight:1.5,borderRadius:8},
+                    disabled:!pc.connected,onClick:()=>doStart(mins)},
+                    React.createElement("span",{style:{fontWeight:800,fontFamily:"var(--mono)"}},mins>=60?`${mins/60}h`:`${mins}m`),
+                    React.createElement("span",{style:{fontSize:10,opacity:.7}},fmt(cost,cur))
+                  );
+                })
+              )
+            ),
+            React.createElement("button",{className:"btn btn-success",style:{width:"100%",justifyContent:"center"},disabled:!pc.connected,onClick:()=>doStart()},
+              React.createElement(Ico,{name:"play"}),"Start — No Time Limit"
+            )
+          ),
+          pc.status!=="inactive"&&React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginTop:4}},
+            React.createElement("button",{className:"btn btn-success",disabled:pc.status==="active"||!pc.connected,style:{justifyContent:"center"},onClick:()=>{send({cmd:"pause",pcId:pc.id});toast(`${pc.name} resumed`,"success");}},React.createElement(Ico,{name:"play"}),"Resume"),
+            React.createElement("button",{className:"btn btn-amber",disabled:pc.status==="paused"||!pc.connected,style:{justifyContent:"center"},onClick:()=>{send({cmd:"pause",pcId:pc.id});toast(`${pc.name} paused`,"warn");}},React.createElement(Ico,{name:"pause"}),"Pause"),
+            React.createElement("button",{className:"btn btn-danger",style:{justifyContent:"center"},onClick:()=>{send({cmd:"stop",pcId:pc.id});toast(`Session stopped on ${pc.name}`,"info");}},React.createElement(Ico,{name:"stop"}),"Stop")
+          )
+        )
+    ),
+
+    tab==="products"&&React.createElement("div",null,
+      React.createElement("div",{style:{display:"flex",gap:8,marginBottom:14}},
+        React.createElement("select",{className:"form-input flex-1",value:selProd,onChange:e=>setSelProd(e.target.value)},
+          React.createElement("option",{value:""},"Select product..."),
+          state?.products?.map(p=>React.createElement("option",{key:p.id,value:p.id},`${p.name} — ${cur}${p.price}`))
+        ),
+        React.createElement("input",{type:"number",className:"form-input",style:{width:62},min:1,value:prodQty,onChange:e=>setProdQty(parseInt(e.target.value)||1)}),
+        React.createElement("button",{className:"btn btn-primary",disabled:!selProd||pc.status==="inactive",
+          onClick:()=>{
+            const prod=state?.products?.find(p=>p.id===selProd);
+            send({cmd:"product_sell",pcId:pc.id,productId:selProd,amount:prodQty});
+            if(prod) toast(`Added ${prodQty}x ${prod.name}`,"success");
+            setSelProd("");setProdQty(1);
+          }},React.createElement(Ico,{name:"plus"}),"Add")
+      ),
+      pc.products?.length===0
+        ?React.createElement("p",{style:{color:"var(--text3)",fontSize:12,textAlign:"center",padding:"20px 0"}},"No products added yet.")
+        :React.createElement("div",null,
+            React.createElement("div",{className:"table-wrap"},
+              React.createElement("table",null,React.createElement("tbody",null,
+                pc.products?.map(p=>React.createElement("tr",{key:p.id},
+                  React.createElement("td",null,p.name),
+                  React.createElement("td",{style:{textAlign:"center",fontFamily:"var(--mono)",color:"var(--text2)"}},`x${p.amount}`),
+                  React.createElement("td",{style:{textAlign:"right",color:"var(--green)",fontFamily:"var(--mono)",fontWeight:600}},fmt(p.price*p.amount,cur))
+                ))
+              ))
+            ),
+            React.createElement("div",{style:{textAlign:"right",marginTop:10,fontWeight:700,color:"var(--amber)",fontFamily:"var(--mono)",fontSize:13}},
+              "Products total: ",fmt(pc.products.reduce((a,p)=>a+p.price*p.amount,0),cur))
+          )
+    ),
+
+    tab==="control"&&React.createElement("div",null,
+      React.createElement("div",{style:{padding:"10px 14px",marginBottom:14,borderRadius:9,display:"flex",alignItems:"center",gap:8,fontSize:12,
+        background:pc.connected?"rgba(22,201,104,.06)":"rgba(240,68,68,.06)",
+        border:`1px solid ${pc.connected?"rgba(22,201,104,.15)":"rgba(240,68,68,.15)"}`}},
+        React.createElement("span",{className:`status-dot dot-${pc.connected?"active":"offline"}`}),
+        pc.connected?`${pc.name} is online — commands sent instantly`:`${pc.name} is offline`
+      ),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}},
+        React.createElement("button",{className:"btn btn-danger",style:{justifyContent:"center"},disabled:!pc.connected,onClick:()=>{send({cmd:"lock",pcId:pc.id});toast(`${pc.name} locked`,"warn");}},React.createElement(Ico,{name:"lock"}),"Lock Screen"),
+        React.createElement("button",{className:"btn btn-success",style:{justifyContent:"center"},disabled:!pc.connected,onClick:()=>{send({cmd:"unlock",pcId:pc.id});toast(`${pc.name} unlocked`,"success");}},React.createElement(Ico,{name:"unlock"}),"Unlock Screen")
+      ),
+      React.createElement("div",{className:"sep"}),
+      React.createElement("div",{className:"form-group"},
+        React.createElement("label",{className:"form-label"},"Send Message to this PC"),
+        React.createElement("input",{className:"form-input",placeholder:"Type message...",value:msgText,onChange:e=>setMsgText(e.target.value),
+          onKeyDown:e=>{if(e.key==="Enter"&&msgText){send({cmd:"message",pcId:pc.id,text:msgText});toast("Message sent","info");setMsgText("");}}})
+      ),
+      React.createElement("button",{className:"btn btn-primary",style:{width:"100%",justifyContent:"center"},disabled:!msgText,
+        onClick:()=>{send({cmd:"message",pcId:pc.id,text:msgText});toast("Message sent","info");setMsgText("");}},
+        React.createElement(Ico,{name:"msg"}),"Send Message"
+      )
+    )
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 5 — TERMINALS PAGE
+═══════════════════════════════════════════════════════════════ */
+function TerminalsPage({conn}) {
+  const {state,send,tick}=conn;
+  const [sel,setSel]=useState(null);
+  const [msgAll,setMsgAll]=useState("");
+  const cur=state?.settings?.currency||"₱";
+  if (!state) return React.createElement("div",{className:"empty-state"},
+    React.createElement(Ico,{name:"wifi",size:40}),
+    React.createElement("h3",null,conn.wsStatus==="connecting"?"Connecting to server...":"Cannot reach server"),
+    React.createElement("p",null,conn.wsStatus==="connecting"?"Please wait...":"Is server.py running?")
+  );
+  const clients=state.clients||[];
+  const active=clients.filter(c=>c.status==="active").length;
+  const paused=clients.filter(c=>c.status==="paused").length;
+  const online=clients.filter(c=>c.connected).length;
+  const pending=clients.filter(c=>c.status!=="inactive").reduce((a,c)=>a+(c.owed||0),0);
+  const today=new Date().toDateString();
+  const todaySessions=(state.sessions||[]).filter(s=>new Date(s.etime).toDateString()===today);
+  const selPc=sel?clients.find(c=>c.id===sel):null;
+  return React.createElement("div",null,
+    React.createElement("div",{className:"stats-row"},
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-label"},"Active Sessions"),React.createElement("div",{className:"stat-value",style:{color:"var(--accent)"}},active),React.createElement("div",{className:"stat-sub"},paused>0?`${paused} paused`:"All running")),
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-label"},"Online PCs"),React.createElement("div",{className:"stat-value",style:{color:"var(--green)"}},online),React.createElement("div",{className:"stat-sub"},`of ${clients.length} registered`)),
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-label"},"Pending Revenue"),React.createElement("div",{className:"stat-value",style:{color:"var(--amber)",fontFamily:"var(--mono)"}},fmt(pending,cur)),React.createElement("div",{className:"stat-sub"},"currently owed")),
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-label"},"Today Sessions"),React.createElement("div",{className:"stat-value"},todaySessions.length),React.createElement("div",{className:"stat-sub"},`${fmt(todaySessions.reduce((a,s)=>a+s.price,0),cur)} earned`))
+    ),
+    clients.length>0&&React.createElement("div",{style:{display:"flex",gap:8,marginBottom:16,alignItems:"center"}},
+      React.createElement("input",{className:"form-input",style:{flex:1,maxWidth:360},placeholder:"Broadcast message to ALL PCs...",value:msgAll,onChange:e=>setMsgAll(e.target.value),
+        onKeyDown:e=>e.key==="Enter"&&msgAll&&(send({cmd:"message_all",text:msgAll}),toast("Broadcast sent","info"),setMsgAll(""))}),
+      React.createElement("button",{className:"btn btn-amber",disabled:!msgAll,
+        onClick:()=>{send({cmd:"message_all",text:msgAll});toast("Broadcast sent","info");setMsgAll("");}},
+        React.createElement(Ico,{name:"msg"}),"Send All")
+    ),
+    clients.length===0&&React.createElement("div",{className:"empty-state"},
+      React.createElement(Ico,{name:"monitor",size:44}),
+      React.createElement("h3",null,"No client PCs connected"),
+      React.createElement("p",null,"Run agent.py on each customer PC to make them appear here.")
+    ),
+    React.createElement("div",{className:"terminals-grid"},
+      clients.map((pc,i)=>{
+        const elapsed=pc.startTime?tick-pc.startTime*1000:0;
+        const member=pc.member?state.members?.find(m=>m.id===pc.member):null;
+        const stClass=pc.connected?pc.status:"offline";
+        const hasTimeout=pc.timeout&&pc.startTime;
+        const timeLeft=hasTimeout?Math.max(0,pc.timeout*60000-elapsed):null;
+        const timeDisplay=pc.status!=="inactive"&&pc.connected?(hasTimeout?fmtClock(timeLeft):fmtClock(elapsed)):null;
+        const timeColor=hasTimeout?(timeLeft<60000?"var(--red)":timeLeft<300000?"var(--amber)":"var(--text2)"):"var(--text2)";
+        const productCount=pc.products?.reduce((a,p)=>a+p.amount,0)||0;
+        return React.createElement("div",{key:pc.id,className:`terminal-card ${stClass}`,style:{animationDelay:`${i*0.04}s`},onClick:()=>pc.connected&&setSel(pc.id)},
+          React.createElement("div",{className:"terminal-num"},pc.ip||pc.id.slice(-6)),
+          React.createElement("div",{className:"terminal-name"},pc.name),
+          React.createElement("div",{className:"terminal-status"},
+            React.createElement("span",{className:`status-dot dot-${stClass}`}),
+            React.createElement("span",{style:{color:stClass==="active"?"var(--green)":stClass==="paused"?"var(--amber)":stClass==="offline"?"var(--red)":"var(--text3)"}},pc.connected?pc.status:"offline")
+          ),
+          !productCount&&React.createElement("div",{className:"platform-icon"},pc.platform==="Windows"?"Win":pc.platform==="Linux"?"Lnx":"?"),
+          timeDisplay&&React.createElement("div",{className:"terminal-time timer",style:{color:timeColor}},timeDisplay,hasTimeout?" left":" elapsed"),
+          member&&React.createElement("div",{className:"tag",style:{marginTop:5,fontSize:10}},member.name.split(" ")[0]),
+          (pc.owed||0)>0&&React.createElement("div",{className:"terminal-owed"},fmt(pc.owed,cur)),
+          productCount>0&&React.createElement("div",{className:"notif"},productCount)
+        );
+      })
+    ),
+    selPc&&React.createElement(TerminalModal,{pc:selPc,conn,onClose:()=>setSel(null)})
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 6 — CASHING PAGE
+═══════════════════════════════════════════════════════════════ */
+function CashingPage({conn}) {
+  const {state,send,tick}=conn;
+  const [sel,setSel]=useState(null);
+  const [discount,setDiscount]=useState(0);
+  const [amtPaid,setAmtPaid]=useState("");
+  const cur=state?.settings?.currency||"₱";
+  if (!state) return null;
+  const active=(state.clients||[]).filter(c=>c.status!=="inactive");
+  const selPc=sel?active.find(c=>c.id===sel):null;
+  const owed=selPc?.owed||0;
+  const final=Math.max(0,owed*(1-discount/100));
+  const change=amtPaid?Math.max(0,parseFloat(amtPaid)-final):0;
+  return React.createElement("div",{className:"panel-layout"},
+    React.createElement("div",{className:"panel-main"},
+      React.createElement("div",{className:"table-wrap",style:{marginBottom:20}},
+        React.createElement("table",null,
+          React.createElement("thead",null,React.createElement("tr",null,["PC","Status","Member","Duration","Owed",""].map(h=>React.createElement("th",{key:h},h)))),
+          React.createElement("tbody",null,
+            active.length===0&&React.createElement("tr",null,React.createElement("td",{colSpan:6,style:{textAlign:"center",color:"var(--text3)",padding:34}},"No active sessions")),
+            active.map(pc=>{
+              const m=pc.member?state.members?.find(x=>x.id===pc.member):null;
+              const elapsed=pc.startTime?tick-pc.startTime*1000:0;
+              return React.createElement("tr",{key:pc.id,style:{cursor:"pointer",background:sel===pc.id?"rgba(61,142,245,.06)":""},onClick:()=>setSel(pc.id)},
+                React.createElement("td",{style:{fontWeight:600}},pc.name),
+                React.createElement("td",null,React.createElement("span",{className:`badge badge-${pc.status}`},pc.status)),
+                React.createElement("td",null,m?.name||React.createElement("span",{className:"text-muted"},"Guest")),
+                React.createElement("td",{className:"timer"},fmtElapsed(elapsed)),
+                React.createElement("td",{className:"fw-700 text-green",style:{fontFamily:"var(--mono)"}},fmt(pc.owed,cur)),
+                React.createElement("td",null,React.createElement("button",{className:"btn btn-sm btn-primary",onClick:e=>{e.stopPropagation();setSel(pc.id);}},React.createElement(Ico,{name:"dollar"}),"Charge"))
+              );
+            })
+          )
+        )
+      ),
+      React.createElement("div",{className:"card-title",style:{marginBottom:10}},"Recent Sessions"),
+      React.createElement("div",{className:"table-wrap"},
+        React.createElement("table",null,
+          React.createElement("thead",null,React.createElement("tr",null,["Terminal","Member","End Time","Duration","Paid"].map(h=>React.createElement("th",{key:h},h)))),
+          React.createElement("tbody",null,
+            (!state.sessions||state.sessions.length===0)&&React.createElement("tr",null,React.createElement("td",{colSpan:5,style:{textAlign:"center",color:"var(--text3)",padding:30}},"No recent sessions")),
+            state.sessions?.slice(0,15).map(s=>{
+              const m=s.member?state.members?.find(x=>x.id===s.member):null;
+              const pc=state.clients?.find(x=>x.id===s.terminal);
+              const d=new Date(s.etime).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+              return React.createElement("tr",{key:s.id},
+                React.createElement("td",{style:{fontWeight:600}},pc?.name||s.terminal),
+                React.createElement("td",null,m?.name||React.createElement("span",{className:"text-muted"},"Guest")),
+                React.createElement("td",{className:"text-muted"},d),
+                React.createElement("td",{className:"timer"},fmtDuration(s.duration)),
+                React.createElement("td",{className:"fw-700 text-green",style:{fontFamily:"var(--mono)"}},fmt(s.price,cur))
+              );
+            })
+          )
+        )
+      )
+    ),
+    React.createElement("div",{className:"panel-right"},
+      React.createElement("div",{className:"card"},
+        React.createElement("div",{className:"card-title"},"Charge Customer"),
+        !selPc&&React.createElement("p",{style:{color:"var(--text3)",fontSize:12,textAlign:"center",padding:"20px 0"}},"Select a session to charge"),
+        selPc&&React.createElement("div",null,
+          React.createElement("div",{className:"detail-row"},React.createElement("span",null,"PC"),React.createElement("span",{className:"fw-600"},selPc.name)),
+          React.createElement("div",{className:"detail-row"},React.createElement("span",null,"Amount Due"),React.createElement("span",{style:{fontSize:22,fontWeight:800,color:"var(--green)",fontFamily:"var(--mono)"}},fmt(owed,cur))),
+          React.createElement("div",{className:"form-group mt-10"},React.createElement("label",{className:"form-label"},"Discount %"),React.createElement("input",{className:"form-input",type:"number",min:0,max:100,value:discount,onChange:e=>setDiscount(parseInt(e.target.value)||0)})),
+          discount>0&&React.createElement("div",{className:"detail-row"},React.createElement("span",null,"After Discount"),React.createElement("span",{className:"fw-700 text-green",style:{fontFamily:"var(--mono)"}},fmt(final,cur))),
+          React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Cash Received"),React.createElement("input",{className:"form-input",type:"number",placeholder:"0.00",value:amtPaid,onChange:e=>setAmtPaid(e.target.value)})),
+          amtPaid&&React.createElement("div",{className:"detail-row"},React.createElement("span",null,"Change"),React.createElement("span",{className:"fw-700 text-amber",style:{fontFamily:"var(--mono)"}},fmt(change,cur))),
+          React.createElement("button",{className:"btn btn-success",style:{width:"100%",marginTop:14,justifyContent:"center"},
+            onClick:()=>{send({cmd:"stop",pcId:selPc.id});toast(`Collected ${fmt(final,cur)} from ${selPc.name}`,"success");setSel(null);setDiscount(0);setAmtPaid("");}},
+            React.createElement(Ico,{name:"dollar"}),"Collect & Close Session"
+          )
+        )
+      )
+    )
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 7 — PRODUCTS PAGE
+═══════════════════════════════════════════════════════════════ */
+function ProductsPage({conn}) {
+  const {state,send}=conn;
+  const [modal,setModal]=useState(null);
+  const empty={name:"",category:"",price:0,stock:0};
+  const [form,setForm]=useState(empty);
+  if (!state) return null;
+  const cur=state?.settings?.currency||"₱";
+  const save=()=>{send({cmd:modal==="add"?"product_add":"product_edit",product:form});toast(modal==="add"?"Product added":"Updated","success");setModal(null);};
+  return React.createElement("div",null,
+    React.createElement("div",{style:{display:"flex",justifyContent:"flex-end",marginBottom:16}},
+      React.createElement("button",{className:"btn btn-primary",onClick:()=>{setForm(empty);setModal("add");}},React.createElement(Ico,{name:"plus"}),"Add Product")
+    ),
+    React.createElement("div",{className:"table-wrap"},
+      React.createElement("table",null,
+        React.createElement("thead",null,React.createElement("tr",null,["Name","Category","Price","Stock",""].map(h=>React.createElement("th",{key:h},h)))),
+        React.createElement("tbody",null,
+          state.products?.length===0&&React.createElement("tr",null,React.createElement("td",{colSpan:5,style:{textAlign:"center",color:"var(--text3)",padding:30}},"No products yet")),
+          state.products?.map(p=>React.createElement("tr",{key:p.id},
+            React.createElement("td",{style:{fontWeight:600}},p.name),
+            React.createElement("td",null,React.createElement("span",{className:"tag"},p.category)),
+            React.createElement("td",{className:"text-green fw-700",style:{fontFamily:"var(--mono)"}},fmt(p.price,cur)),
+            React.createElement("td",{style:{color:p.stock<5?"var(--red)":p.stock<15?"var(--amber)":"var(--text)",fontFamily:"var(--mono)",fontWeight:600}},p.stock===9999?"inf":p.stock),
+            React.createElement("td",null,React.createElement("div",{style:{display:"flex",gap:6}},
+              React.createElement("button",{className:"btn btn-sm",onClick:()=>{setForm({...p});setModal("edit");}},React.createElement(Ico,{name:"edit"})),
+              React.createElement(ConfirmBtn,{onClick:()=>{send({cmd:"product_del",id:p.id});toast("Removed","warn");}})
+            ))
+          ))
+        )
+      )
+    ),
+    modal&&React.createElement(Modal,{title:modal==="add"?"Add Product":"Edit Product",onClose:()=>setModal(null),
+      footer:[React.createElement("button",{key:"c",className:"btn",onClick:()=>setModal(null)},"Cancel"),React.createElement("button",{key:"s",className:"btn btn-primary",onClick:save},modal==="add"?"Add":"Save")]},
+      React.createElement("div",{className:"form-row"},
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Name"),React.createElement("input",{className:"form-input",value:form.name,onChange:e=>setForm({...form,name:e.target.value})})),
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Category"),React.createElement("input",{className:"form-input",value:form.category,onChange:e=>setForm({...form,category:e.target.value})}))
+      ),
+      React.createElement("div",{className:"form-row"},
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Price"),React.createElement("input",{className:"form-input",type:"number",value:form.price,onChange:e=>setForm({...form,price:parseFloat(e.target.value)||0})})),
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Stock (9999=unlimited)"),React.createElement("input",{className:"form-input",type:"number",value:form.stock,onChange:e=>setForm({...form,stock:parseInt(e.target.value)||0})}))
+      )
+    )
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 8 — MEMBERS PAGE
+═══════════════════════════════════════════════════════════════ */
+function MembersPage({conn}) {
+  const {state,send}=conn;
+  const [modal,setModal]=useState(null);
+  const [topup,setTopup]=useState(null);
+  const [topupAmt,setTopupAmt]=useState("");
+  const empty={name:"",email:"",username:"",password:"",credit:0,tariff:"t1"};
+  const [form,setForm]=useState(empty);
+  if (!state) return null;
+  const cur=state?.settings?.currency||"₱";
+  const save=()=>{send({cmd:modal==="add"?"member_add":"member_edit",member:form});toast(modal==="add"?"Member added":"Updated","success");setModal(null);};
+  return React.createElement("div",null,
+    React.createElement("div",{style:{display:"flex",justifyContent:"flex-end",marginBottom:16}},
+      React.createElement("button",{className:"btn btn-primary",onClick:()=>{setForm(empty);setModal("add");}},React.createElement(Ico,{name:"plus"}),"New Member")
+    ),
+    React.createElement("div",{className:"table-wrap"},
+      React.createElement("table",null,
+        React.createElement("thead",null,React.createElement("tr",null,["Name","Email","Tariff","Credit",""].map(h=>React.createElement("th",{key:h},h)))),
+        React.createElement("tbody",null,
+          state.members?.length===0&&React.createElement("tr",null,React.createElement("td",{colSpan:5,style:{textAlign:"center",color:"var(--text3)",padding:30}},"No members yet")),
+          state.members?.map(m=>{
+            const t=state.tariffs?.find(x=>x.id===m.tariff);
+            return React.createElement("tr",{key:m.id},
+              React.createElement("td",{style:{fontWeight:600}},m.name),
+              React.createElement("td",{className:"text-muted"},m.email||"—"),
+              React.createElement("td",null,React.createElement("span",{className:"tag"},t?.name||"—")),
+              React.createElement("td",{className:"text-green fw-700",style:{fontFamily:"var(--mono)"}},fmt(m.credit,cur)),
+              React.createElement("td",null,React.createElement("div",{style:{display:"flex",gap:6}},
+                React.createElement("button",{className:"btn btn-sm btn-success",onClick:()=>{setTopup(m);setTopupAmt("");}},"+Credit"),
+                React.createElement("button",{className:"btn btn-sm",onClick:()=>{setForm({...m,password:""});setModal("edit");}},React.createElement(Ico,{name:"edit"})),
+                React.createElement(ConfirmBtn,{onClick:()=>{send({cmd:"member_del",id:m.id});toast("Member removed","warn");}})
+              ))
+            );
+          })
+        )
+      )
+    ),
+    modal&&React.createElement(Modal,{title:modal==="add"?"New Member":"Edit Member",onClose:()=>setModal(null),
+      footer:[React.createElement("button",{key:"c",className:"btn",onClick:()=>setModal(null)},"Cancel"),React.createElement("button",{key:"s",className:"btn btn-primary",onClick:save},modal==="add"?"Add Member":"Save")]},
+      React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Full Name"),React.createElement("input",{className:"form-input",value:form.name,autoFocus:true,onChange:e=>setForm({...form,name:e.target.value})})),
+      React.createElement("div",{className:"form-row"},
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Email"),React.createElement("input",{className:"form-input",type:"email",value:form.email||"",onChange:e=>setForm({...form,email:e.target.value})})),
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Username"),React.createElement("input",{className:"form-input",value:form.username||"",onChange:e=>setForm({...form,username:e.target.value})}))
+      ),
+      React.createElement("div",{className:"form-row"},
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Password"+(modal==="edit"?" (blank=keep)":"")),React.createElement("input",{className:"form-input",type:"password",value:form.password||"",onChange:e=>setForm({...form,password:e.target.value})})),
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Starting Credit"),React.createElement("input",{className:"form-input",type:"number",value:form.credit,onChange:e=>setForm({...form,credit:parseFloat(e.target.value)||0})}))
+      ),
+      React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Default Tariff"),
+        React.createElement("select",{className:"form-input",value:form.tariff||"t1",onChange:e=>setForm({...form,tariff:e.target.value})},
+          state.tariffs?.map(t=>React.createElement("option",{key:t.id,value:t.id},t.name))
+        )
+      )
+    ),
+    topup&&React.createElement(Modal,{title:`Top Up — ${topup.name}`,onClose:()=>setTopup(null),
+      footer:[React.createElement("button",{key:"c",className:"btn",onClick:()=>setTopup(null)},"Cancel"),
+        React.createElement("button",{key:"s",className:"btn btn-success",
+          onClick:()=>{send({cmd:"member_topup",memberId:topup.id,amount:parseFloat(topupAmt)||0});toast(`Added ${fmt(parseFloat(topupAmt)||0,cur)}`,"success");setTopup(null);}
+        },`Add ${cur}${topupAmt||0}`)]},
+      React.createElement("div",{className:"detail-row",style:{marginBottom:14}},React.createElement("span",null,"Current Credit"),React.createElement("span",{style:{fontWeight:700,color:"var(--green)",fontFamily:"var(--mono)"}},fmt(topup.credit,cur))),
+      React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Amount to Add"),
+        React.createElement("input",{className:"form-input",type:"number",min:0,autoFocus:true,value:topupAmt,onChange:e=>setTopupAmt(e.target.value),
+          onKeyDown:e=>e.key==="Enter"&&topupAmt&&(send({cmd:"member_topup",memberId:topup.id,amount:parseFloat(topupAmt)||0}),toast(`Added ${fmt(parseFloat(topupAmt)||0,cur)}`,"success"),setTopup(null))})
+      )
+    )
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 9 — TICKETS PAGE
+═══════════════════════════════════════════════════════════════ */
+function TicketsPage({conn}) {
+  const {state,send}=conn;
+  const empty={qty:1,tariff:state?.tariffs?.[0]?.id||"t1",minutes:60,price:20};
+  const [form,setForm]=useState(empty);
+  const [modal,setModal]=useState(null);
+  if (!state) return null;
+  const cur=state?.settings?.currency||"₱";
+  const printTicket=(t)=>{
+    const tariff=state.tariffs?.find(x=>x.id===t.tariff);
+    const w=window.open("","_blank","width=440,height=360");
+    w.document.write(`<!DOCTYPE html><html><head><style>*{box-sizing:border-box;margin:0;padding:0}body{text-align:center;font-family:monospace;padding:30px 36px;background:#fff;color:#111}.brand{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#888;margin-bottom:22px}.divider{border:none;border-top:1px dashed #ddd;margin:18px 0}.code{font-size:58px;font-weight:400;letter-spacing:8px;margin:16px 0;color:#3d8ef5}.detail{font-size:11px;color:#666;margin:5px 0}.footer{font-size:10px;color:#bbb;margin-top:18px}</style></head><body><div class="brand">Nordseye Session Ticket</div><hr class="divider"><div class="code">${t.code}</div><hr class="divider"><p class="detail">Tariff: ${tariff?.name||"—"}</p><p class="detail">Duration: ${t.minutes} minutes</p><p class="detail">Price: ${cur}${t.price}</p><hr class="divider"><p class="footer">Enter this code at the terminal to start your session</p></body></html>`);
+    w.document.close();w.setTimeout(()=>w.print(),200);
+  };
+  return React.createElement("div",null,
+    React.createElement("div",{style:{display:"flex",justifyContent:"flex-end",marginBottom:16}},
+      React.createElement("button",{className:"btn btn-primary",onClick:()=>{setForm({...empty,tariff:state.tariffs?.[0]?.id||"t1"});setModal("add");}},React.createElement(Ico,{name:"ticket"}),"Generate Tickets")
+    ),
+    React.createElement("div",{className:"table-wrap"},
+      React.createElement("table",null,
+        React.createElement("thead",null,React.createElement("tr",null,["Code","Tariff","Duration","Price","Status",""].map(h=>React.createElement("th",{key:h},h)))),
+        React.createElement("tbody",null,
+          state.tickets?.length===0&&React.createElement("tr",null,React.createElement("td",{colSpan:6,style:{textAlign:"center",color:"var(--text3)",padding:30}},"No tickets generated")),
+          state.tickets?.slice().reverse().map(t=>{
+            const tariff=state.tariffs?.find(x=>x.id===t.tariff);
+            return React.createElement("tr",{key:t.id},
+              React.createElement("td",{style:{fontFamily:"var(--mono)",fontSize:17,fontWeight:500,letterSpacing:3,color:"var(--accent)"}},t.code),
+              React.createElement("td",null,React.createElement("span",{className:"tag"},tariff?.name||"—")),
+              React.createElement("td",{style:{fontFamily:"var(--mono)"}},`${t.minutes}m`),
+              React.createElement("td",{className:"text-green fw-700",style:{fontFamily:"var(--mono)"}},fmt(t.price,cur)),
+              React.createElement("td",null,React.createElement("span",{className:`badge badge-${t.status==="active"?"active":"inactive"}`},t.status)),
+              React.createElement("td",null,React.createElement("div",{style:{display:"flex",gap:6,justifyContent:"flex-end"}},
+                t.status==="active"&&React.createElement("button",{className:"btn btn-sm btn-success",onClick:()=>printTicket(t)},React.createElement(Ico,{name:"print"}),"Print"),
+                React.createElement(ConfirmBtn,{onClick:()=>{send({cmd:"ticket_del",id:t.id});toast("Deleted","warn");}})
+              ))
+            );
+          })
+        )
+      )
+    ),
+    modal==="add"&&React.createElement(Modal,{title:"Generate Tickets",onClose:()=>setModal(null),
+      footer:[React.createElement("button",{key:"c",className:"btn",onClick:()=>setModal(null)},"Cancel"),
+        React.createElement("button",{key:"s",className:"btn btn-primary",
+          onClick:()=>{send({cmd:"ticket_add",...form});toast(`Generated ${form.qty} ticket${form.qty>1?"s":""}`,"success");setModal(null);}
+        },React.createElement(Ico,{name:"ticket"}),"Generate")]},
+      React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Quantity"),React.createElement("input",{className:"form-input",type:"number",min:1,max:50,value:form.qty,onChange:e=>setForm({...form,qty:parseInt(e.target.value)||1})})),
+      React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Tariff"),
+        React.createElement("select",{className:"form-input",value:form.tariff,onChange:e=>setForm({...form,tariff:e.target.value})},state.tariffs?.map(t=>React.createElement("option",{key:t.id,value:t.id},t.name)))
+      ),
+      React.createElement("div",{className:"form-row"},
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Minutes"),React.createElement("input",{className:"form-input",type:"number",min:1,value:form.minutes,onChange:e=>setForm({...form,minutes:parseInt(e.target.value)||0})})),
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Price"),React.createElement("input",{className:"form-input",type:"number",min:0,value:form.price,onChange:e=>setForm({...form,price:parseFloat(e.target.value)||0})}))
+      )
+    )
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 10 — TARIFFS PAGE
+═══════════════════════════════════════════════════════════════ */
+function TariffsPage({conn}) {
+  const {state,send}=conn;
+  const [modal,setModal]=useState(null);
+  const empty={name:"",hourPrice:20,freeAfter:10,days:127};
+  const [form,setForm]=useState(empty);
+  if (!state) return null;
+  const cur=state?.settings?.currency||"₱";
+  const days=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const save=()=>{send({cmd:modal==="add"?"tariff_add":"tariff_edit",tariff:form});toast(modal==="add"?"Tariff created":"Updated","success");setModal(null);};
+  return React.createElement("div",null,
+    React.createElement("div",{style:{display:"flex",justifyContent:"flex-end",marginBottom:16}},
+      React.createElement("button",{className:"btn btn-primary",onClick:()=>{setForm(empty);setModal("add");}},React.createElement(Ico,{name:"plus"}),"New Tariff")
+    ),
+    React.createElement("div",{className:"grid-2"},
+      state.tariffs?.map(t=>React.createElement("div",{key:t.id,className:"card"},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}},
+          React.createElement("span",{style:{fontFamily:"var(--display)",fontWeight:700,fontSize:15}},t.name),
+          React.createElement("div",{style:{display:"flex",gap:6}},
+            React.createElement("button",{className:"btn btn-sm",onClick:()=>{setForm({...t});setModal("edit");}},React.createElement(Ico,{name:"edit"})),
+            state.tariffs.length>1&&React.createElement(ConfirmBtn,{onClick:()=>{send({cmd:"tariff_del",id:t.id});toast("Deleted","warn");}})
+          )
+        ),
+        React.createElement("div",{className:"detail-row"},React.createElement("span",null,"Per Hour"),React.createElement("span",{className:"fw-700 text-accent",style:{fontFamily:"var(--mono)"}},fmt(t.hourPrice,cur))),
+        React.createElement("div",{className:"detail-row"},React.createElement("span",null,"Free First"),React.createElement("span",null,`${t.freeAfter||0} min`)),
+        React.createElement("div",{className:"detail-row"},React.createElement("span",null,"Per Minute"),React.createElement("span",{style:{fontFamily:"var(--mono)",color:"var(--text2)"}},fmt(t.hourPrice/60,cur))),
+        React.createElement("div",{style:{marginTop:12,display:"flex",gap:4,flexWrap:"wrap"}},
+          days.map((d,i)=>{
+            const on=(t.days>>i)&1;
+            return React.createElement("span",{key:d,style:{display:"inline-block",padding:"2px 9px",borderRadius:20,fontSize:10,fontWeight:600,
+              background:on?"rgba(61,142,245,.12)":"var(--surface3)",color:on?"var(--accent)":"var(--text3)",
+              border:on?"1px solid rgba(61,142,245,.25)":"1px solid var(--border)"}},d);
+          })
+        )
+      ))
+    ),
+    modal&&React.createElement(Modal,{title:modal==="add"?"New Tariff":"Edit Tariff",onClose:()=>setModal(null),
+      footer:[React.createElement("button",{key:"c",className:"btn",onClick:()=>setModal(null)},"Cancel"),React.createElement("button",{key:"s",className:"btn btn-primary",onClick:save},modal==="add"?"Create":"Save")]},
+      React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Tariff Name"),React.createElement("input",{className:"form-input",value:form.name,autoFocus:true,onChange:e=>setForm({...form,name:e.target.value})})),
+      React.createElement("div",{className:"form-row"},
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Hour Price"),React.createElement("input",{className:"form-input",type:"number",value:form.hourPrice,onChange:e=>setForm({...form,hourPrice:parseFloat(e.target.value)||0})})),
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Free After (min)"),React.createElement("input",{className:"form-input",type:"number",value:form.freeAfter,onChange:e=>setForm({...form,freeAfter:parseInt(e.target.value)||0})}))
+      ),
+      React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Active Days"),
+        React.createElement("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}},
+          days.map((d,i)=>{
+            const on=(form.days>>i)&1;
+            return React.createElement("button",{key:d,className:"btn btn-sm",
+              style:{background:on?"var(--accent)":"var(--surface2)",color:on?"#fff":"var(--text2)",border:"1px solid "+(on?"var(--accent)":"var(--border2)")},
+              onClick:()=>setForm({...form,days:form.days^(1<<i)})},d);
+          })
+        )
+      )
+    )
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 11 — REPORTS PAGE
+═══════════════════════════════════════════════════════════════ */
+function ReportsPage({conn}) {
+  const {state,send}=conn;
+  const [expModal,setExpModal]=useState(false);
+  const [exp,setExp]=useState({desc:"",amount:0,category:"Operational"});
+  if (!state) return null;
+  const cur=state?.settings?.currency||"₱";
+  const sessions=state.sessions||[];
+  const expenses=state.expenses||[];
+  const revenue=sessions.reduce((a,s)=>a+s.price,0);
+  const expTotal=expenses.reduce((a,e)=>a+e.amount,0);
+  const prodLog=state.productLog||[];
+  const prodRevenue=prodLog.reduce((a,p)=>a+p.price,0);
+  const today=new Date().toDateString();
+  const todaySessions=sessions.filter(s=>new Date(s.etime).toDateString()===today);
+  const todayRevenue=todaySessions.reduce((a,s)=>a+s.price,0);
+  const hourlyRevenue=Array(24).fill(0);
+  todaySessions.forEach(s=>{const h=new Date(s.etime).getHours();hourlyRevenue[h]+=s.price;});
+  const maxHour=Math.max(...hourlyRevenue,1);
+  const peakHours=hourlyRevenue.map((v,i)=>({v,i})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v).slice(0,3);
+  return React.createElement("div",null,
+    React.createElement("div",{className:"stats-row"},
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-label"},"Total Revenue"),React.createElement("div",{className:"stat-value text-accent",style:{fontFamily:"var(--mono)"}},fmt(revenue,cur)),React.createElement("div",{className:"stat-sub"},`${sessions.length} sessions`)),
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-label"},"Today Revenue"),React.createElement("div",{className:"stat-value text-green",style:{fontFamily:"var(--mono)"}},fmt(todayRevenue,cur)),React.createElement("div",{className:"stat-sub"},`${todaySessions.length} sessions`)),
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-label"},"Product Sales"),React.createElement("div",{className:"stat-value text-amber",style:{fontFamily:"var(--mono)"}},fmt(prodRevenue,cur)),React.createElement("div",{className:"stat-sub"},`${prodLog.length} items`)),
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-label"},"Net Profit"),
+        React.createElement("div",{className:"stat-value",style:{color:revenue-expTotal>=0?"var(--green)":"var(--red)",fontFamily:"var(--mono)"}},fmt(revenue-expTotal,cur)),
+        React.createElement("div",{className:"stat-sub"},`${fmt(expTotal,cur)} expenses`))
+    ),
+    React.createElement("div",{className:"grid-2"},
+      React.createElement("div",null,
+        todaySessions.length>0&&React.createElement("div",{className:"card",style:{marginBottom:16}},
+          React.createElement("div",{className:"card-title"},"Today Revenue by Hour"),
+          React.createElement("div",{style:{display:"flex",alignItems:"flex-end",gap:3,height:72,marginBottom:6}},
+            hourlyRevenue.map((v,h)=>{
+              const pct=v/maxHour;
+              const isNow=new Date().getHours()===h;
+              return React.createElement("div",{key:h,style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center"}},
+                React.createElement("div",{style:{width:"100%",height:Math.max(2,pct*68)+"px",background:isNow?"var(--accent)":"rgba(61,142,245,.35)",borderRadius:"3px 3px 0 0",transition:"height .5s cubic-bezier(.22,1,.36,1)"}})
+              );
+            })
+          ),
+          React.createElement("div",{style:{display:"flex",justifyContent:"space-between",fontSize:9,color:"var(--text3)"}},
+            React.createElement("span",null,"12am"),React.createElement("span",null,"6am"),React.createElement("span",null,"12pm"),React.createElement("span",null,"6pm"),React.createElement("span",null,"11pm")
+          ),
+          peakHours.length>0&&React.createElement("div",{style:{marginTop:10,fontSize:11,color:"var(--text2)"}},
+            "Peak: ",peakHours.map(x=>`${x.i}:00 (${fmt(x.v,cur)})`).join(" / ")
+          )
+        ),
+        React.createElement("div",{className:"card-title",style:{marginBottom:10}},"Session Log"),
+        React.createElement("div",{className:"table-wrap"},
+          React.createElement("table",null,
+            React.createElement("thead",null,React.createElement("tr",null,["PC","Member","Date","Duration","Total"].map(h=>React.createElement("th",{key:h},h)))),
+            React.createElement("tbody",null,
+              sessions.length===0&&React.createElement("tr",null,React.createElement("td",{colSpan:5,style:{textAlign:"center",color:"var(--text3)",padding:20}},"No sessions yet")),
+              sessions.slice(0,50).map(s=>{
+                const m=s.member?state.members?.find(x=>x.id===s.member):null;
+                const pc=state.clients?.find(x=>x.id===s.terminal);
+                const d=new Date(s.etime).toLocaleDateString([],{month:"short",day:"numeric"});
+                return React.createElement("tr",{key:s.id},
+                  React.createElement("td",{style:{fontWeight:600}},pc?.name||s.terminal),
+                  React.createElement("td",null,m?.name||React.createElement("span",{className:"text-muted"},"Guest")),
+                  React.createElement("td",{className:"text-muted"},d),
+                  React.createElement("td",{className:"timer"},fmtDuration(s.duration)),
+                  React.createElement("td",{className:"fw-700 text-green",style:{fontFamily:"var(--mono)"}},fmt(s.price,cur))
+                );
+              })
+            )
+          )
+        )
+      ),
+      React.createElement("div",null,
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
+          React.createElement("div",{className:"card-title",style:{marginBottom:0}},"Expenses"),
+          React.createElement("button",{className:"btn btn-sm btn-danger",onClick:()=>setExpModal(true)},React.createElement(Ico,{name:"plus"}),"Add")
+        ),
+        React.createElement("div",{className:"table-wrap"},
+          React.createElement("table",null,
+            React.createElement("thead",null,React.createElement("tr",null,["Description","Category","Amount"].map(h=>React.createElement("th",{key:h},h)))),
+            React.createElement("tbody",null,
+              expenses.length===0&&React.createElement("tr",null,React.createElement("td",{colSpan:3,style:{textAlign:"center",color:"var(--text3)",padding:20}},"No expenses logged")),
+              expenses.slice(0,30).map(e=>React.createElement("tr",{key:e.id},
+                React.createElement("td",{style:{fontWeight:600}},e.desc||e.description||"—"),
+                React.createElement("td",null,React.createElement("span",{className:"tag"},e.category||"—")),
+                React.createElement("td",{className:"fw-700 text-red",style:{fontFamily:"var(--mono)"}},fmt(e.amount,cur))
+              ))
+            )
+          )
+        )
+      )
+    ),
+    expModal&&React.createElement(Modal,{title:"Log Expense",onClose:()=>setExpModal(false),
+      footer:[React.createElement("button",{key:"c",className:"btn",onClick:()=>setExpModal(false)},"Cancel"),
+        React.createElement("button",{key:"s",className:"btn btn-primary",
+          onClick:()=>{send({cmd:"expense_add",expense:{desc:exp.desc,amount:exp.amount,category:exp.category}});toast(`Expense: ${fmt(exp.amount,cur)}`,"warn");setExpModal(false);setExp({desc:"",amount:0,category:"Operational"});}
+        },`Log ${fmt(exp.amount,cur)}`)]},
+      React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Description"),React.createElement("input",{className:"form-input",autoFocus:true,value:exp.desc,onChange:e=>setExp({...exp,desc:e.target.value})})),
+      React.createElement("div",{className:"form-row"},
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Amount"),React.createElement("input",{className:"form-input",type:"number",value:exp.amount,onChange:e=>setExp({...exp,amount:parseFloat(e.target.value)||0})})),
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Category"),React.createElement("input",{className:"form-input",value:exp.category,onChange:e=>setExp({...exp,category:e.target.value})}))
+      )
+    )
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 12 — SETTINGS PAGE
+═══════════════════════════════════════════════════════════════ */
+function SettingsPage({conn}) {
+  const {state,send}=conn;
+  const [cfg,setCfg]=useState(null);
+  const [empModal,setEmpModal]=useState(false);
+  const [empForm,setEmpForm]=useState({name:"",username:"",password:"",role:"cashier"});
+  const [saved,setSaved]=useState(false);
+  if (!state) return null;
+  const settings=cfg||state.settings;
+  const saveSettings=()=>{send({cmd:"settings_save",settings});setSaved(true);toast("Settings saved","success");setTimeout(()=>setSaved(false),2500);};
+  return React.createElement("div",{className:"grid-2"},
+    React.createElement("div",null,
+      React.createElement("div",{className:"card",style:{marginBottom:16}},
+        React.createElement("div",{className:"card-title"},"Cafe Settings"),
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Cafe Name"),React.createElement("input",{className:"form-input",value:settings.cafeName||"",onChange:e=>setCfg({...settings,cafeName:e.target.value})})),
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Address"),React.createElement("input",{className:"form-input",value:settings.address||"",onChange:e=>setCfg({...settings,address:e.target.value})})),
+        React.createElement("div",{className:"form-row"},
+          React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Currency Symbol"),React.createElement("input",{className:"form-input",value:settings.currency||"P",onChange:e=>setCfg({...settings,currency:e.target.value}),style:{width:"100%"}})),
+          React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Tax %"),React.createElement("input",{className:"form-input",type:"number",min:0,max:100,value:settings.tax||0,onChange:e=>setCfg({...settings,tax:parseFloat(e.target.value)||0})}))
+        ),
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Client Login Mode"),
+          React.createElement("select",{className:"form-input",value:settings.login_mode||"both",onChange:e=>setCfg({...settings,login_mode:e.target.value})},
+            React.createElement("option",{value:"both"},"Both (Ticket + Member)"),
+            React.createElement("option",{value:"ticket"},"Ticket Only"),
+            React.createElement("option",{value:"member"},"Member Only")
+          )
+        ),
+        React.createElement("button",{className:`btn ${saved?"btn-success":"btn-primary"}`,onClick:saveSettings},
+          saved?React.createElement(Ico,{name:"check"}):"",saved?"Saved!":"Save Settings"
+        )
+      )
+    ),
+    React.createElement("div",null,
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
+        React.createElement("div",{className:"card-title",style:{marginBottom:0}},"Employees"),
+        React.createElement("button",{className:"btn btn-sm btn-primary",onClick:()=>setEmpModal(true)},React.createElement(Ico,{name:"plus"}),"Add")
+      ),
+      React.createElement("div",{className:"table-wrap"},
+        React.createElement("table",null,
+          React.createElement("thead",null,React.createElement("tr",null,["Name","Username","Role",""].map(h=>React.createElement("th",{key:h},h)))),
+          React.createElement("tbody",null,
+            state.employees?.map(e=>React.createElement("tr",{key:e.id},
+              React.createElement("td",{style:{fontWeight:600}},e.name),
+              React.createElement("td",{style:{fontFamily:"var(--mono)",color:"var(--text2)"}},e.username),
+              React.createElement("td",null,React.createElement("span",{className:`badge badge-${e.role}`},e.role)),
+              React.createElement("td",null,state.employees.length>1&&React.createElement(ConfirmBtn,{onClick:()=>{send({cmd:"employee_del",id:e.id});toast("Employee removed","warn");}}))
+            ))
+          )
+        )
+      )
+    ),
+    empModal&&React.createElement(Modal,{title:"Add Employee",onClose:()=>setEmpModal(false),
+      footer:[React.createElement("button",{key:"c",className:"btn",onClick:()=>setEmpModal(false)},"Cancel"),
+        React.createElement("button",{key:"s",className:"btn btn-primary",
+          onClick:()=>{
+            if(!empForm.name||!empForm.username||!empForm.password){toast("Fill in all fields","error");return;}
+            send({cmd:"employee_add",employee:empForm});toast("Employee added","success");setEmpModal(false);setEmpForm({name:"",username:"",password:"",role:"cashier"});
+          }},"Add Employee")]},
+      React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Full Name"),React.createElement("input",{className:"form-input",autoFocus:true,value:empForm.name,onChange:e=>setEmpForm({...empForm,name:e.target.value})})),
+      React.createElement("div",{className:"form-row"},
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Username"),React.createElement("input",{className:"form-input",value:empForm.username,onChange:e=>setEmpForm({...empForm,username:e.target.value})})),
+        React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Password"),React.createElement("input",{className:"form-input",type:"password",value:empForm.password,onChange:e=>setEmpForm({...empForm,password:e.target.value})}))
+      ),
+      React.createElement("div",{className:"form-group"},React.createElement("label",{className:"form-label"},"Role"),
+        React.createElement("select",{className:"form-input",value:empForm.role,onChange:e=>setEmpForm({...empForm,role:e.target.value})},
+          React.createElement("option",{value:"admin"},"Admin"),React.createElement("option",{value:"cashier"},"Cashier")
+        )
+      )
+    )
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 13 — LOGIN SCREEN
+═══════════════════════════════════════════════════════════════ */
+function LoginScreen({conn,onLogin}) {
+  const [usr,setUsr]=useState("");
+  const [pwd,setPwd]=useState("");
+  const [err,setErr]=useState("");
+  const [loading,setLoading]=useState(false);
+  const login=async()=>{
+    if (!usr||!pwd){ setErr("Enter username and password"); return; }
+    setLoading(true);
+    const res=await conn.login(usr,pwd);
+    setLoading(false);
+    if (res.ok) onLogin(res.employee);
+    else setErr("Invalid username or password");
+  };
+  return React.createElement("div",{className:"login-screen"},
+    React.createElement("div",{className:"login-bg"}),
+    React.createElement("div",{className:"login-grid"}),
+    conn.wsStatus!=="connected"&&React.createElement("div",{style:{position:"absolute",top:0,left:0,right:0,padding:"8px",background:"rgba(245,166,35,.08)",color:"var(--amber)",textAlign:"center",fontSize:11.5,fontWeight:600,borderBottom:"1px solid rgba(245,166,35,.15)"}},
+      `Connecting to server at ${WS_URL}...`
+    ),
+    React.createElement("div",{className:"login-card"},
+      React.createElement("div",{className:"login-icon"},"\u2699"),
+      React.createElement("div",{className:"login-logo"},"Nord",React.createElement("span",null,"seye")),
+      React.createElement("p",{className:"login-sub"},"Cyber Cafe Manager"),
+      React.createElement("div",{className:"form-group"},
+        React.createElement("label",{className:"form-label"},"Username"),
+        React.createElement("input",{className:"form-input",value:usr,autoFocus:true,onChange:e=>{setUsr(e.target.value);setErr("");},onKeyDown:e=>e.key==="Enter"&&login()})
+      ),
+      React.createElement("div",{className:"form-group"},
+        React.createElement("label",{className:"form-label"},"Password"),
+        React.createElement("input",{className:"form-input",type:"password",value:pwd,onChange:e=>{setPwd(e.target.value);setErr("");},onKeyDown:e=>e.key==="Enter"&&login()})
+      ),
+      err&&React.createElement("div",{className:"login-err"},err),
+      React.createElement("button",{
+        className:"btn btn-primary",
+        style:{width:"100%",padding:"11px",marginTop:4,fontSize:13.5,borderRadius:9,justifyContent:"center"},
+        disabled:loading||conn.wsStatus!=="connected",onClick:login
+      },loading?"Signing in...":"Sign In"),
+      React.createElement("p",{style:{fontSize:10.5,color:"var(--text3)",marginTop:20,lineHeight:1.7}},
+        "Default: admin / 1234",React.createElement("br",null),`Server: ${WS_URL}`)
+    )
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE 14 — APP ROOT
+═══════════════════════════════════════════════════════════════ */
+function App() {
+  const stored=(()=>{try{return JSON.parse(sessionStorage.getItem("nordseye_emp")||"null");}catch{return null;}})();
+  const [curEmp,setCurEmp]=useState(stored);
+  const conn=useServerConnection();
+  const [page,setPage]=useState("terminals");
+  const handleLogin=(emp)=>{sessionStorage.setItem("nordseye_emp",JSON.stringify(emp));setCurEmp(emp);};
+  const handleLogout=()=>{sessionStorage.removeItem("nordseye_emp");setCurEmp(null);};
+  if (!curEmp) return React.createElement(LoginScreen,{conn,onLogin:handleLogin});
+  const {state,wsStatus,tick}=conn;
+  const clients=state?.clients||[];
+  const active=clients.filter(c=>c.status==="active").length;
+  const online=clients.filter(c=>c.connected).length;
+  const pages={
+    terminals:{label:"Terminals",icon:"monitor",comp:TerminalsPage},
+    cashing:  {label:"Cashing",  icon:"dollar", comp:CashingPage},
+    products: {label:"Products", icon:"package",comp:ProductsPage},
+    members:  {label:"Members",  icon:"users",  comp:MembersPage},
+    tickets:  {label:"Tickets",  icon:"ticket", comp:TicketsPage},
+    tariffs:  {label:"Tariffs",  icon:"clock",  comp:TariffsPage},
+    reports:  {label:"Reports",  icon:"chart",  comp:ReportsPage},
+    settings: {label:"Settings", icon:"settings",comp:SettingsPage},
+  };
+  const groups=[
+    {label:"Operations",items:["terminals","cashing","products"]},
+    {label:"Management",items:["members","tickets","tariffs"]},
+    {label:"System",    items:["reports","settings"]},
+  ];
+  const Comp=pages[page].comp;
+  return React.createElement("div",{id:"app"},
+    React.createElement("div",{className:"sidebar"},
+      React.createElement("div",{className:"logo"},
+        React.createElement("div",{className:"logo-mark"},
+          React.createElement("h1",null,"Nord",React.createElement("span",null,"seye")),
+          React.createElement("div",{className:"logo-dot"})
+        ),
+        React.createElement("p",{className:"logo-sub"},state?.settings?.cafeName||"Cafe Manager")
+      ),
+      React.createElement("div",{className:"nav"},
+        groups.map(g=>[
+          React.createElement("div",{key:"s_"+g.label,className:"nav-section"},g.label),
+          ...g.items.map(id=>React.createElement("div",{key:id,className:`nav-item${page===id?" active":""}`,onClick:()=>setPage(id)},
+            React.createElement(SVG,{d:I[pages[id].icon]||I.alert,size:14}),
+            pages[id].label,
+            id==="terminals"&&active>0&&React.createElement("span",{className:"nav-badge"},active)
+          ))
+        ])
+      ),
+      React.createElement("div",{className:"sidebar-footer"},
+        React.createElement("div",{className:"emp-badge"},
+          React.createElement("div",{className:"emp-avatar"},curEmp.name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()),
+          React.createElement("div",{className:"emp-info"},
+            React.createElement("p",null,curEmp.name),
+            React.createElement("span",null,curEmp.role)
+          ),
+          React.createElement("button",{className:"btn btn-sm btn-icon",style:{marginLeft:"auto",color:"var(--text3)"},title:"Logout",onClick:handleLogout},
+            React.createElement(SVG,{d:I.logout,size:13})
+          )
+        )
+      )
+    ),
+    React.createElement("div",{className:"main"},
+      wsStatus!=="connected"&&React.createElement("div",{className:`ws-bar ws-${wsStatus}`},
+        wsStatus==="connecting"?"Connecting to server...":"Server offline — reconnecting..."
+      ),
+      React.createElement("div",{className:"topbar"},
+        React.createElement("span",{className:"topbar-title"},pages[page].label),
+        React.createElement("div",{className:"topbar-actions"},
+          React.createElement("span",{className:"info-pill"},React.createElement("span",{className:`conn-dot ${wsStatus==="connected"?"live":"dead"}`}),`${online} online`),
+          React.createElement("span",{className:"info-pill"},React.createElement("span",{className:"status-dot dot-active",style:{flexShrink:0}}),`${active} active`),
+          React.createElement("span",{className:"info-pill",style:{fontFamily:"var(--mono)",fontSize:11}},new Date(tick).toLocaleTimeString())
+        )
+      ),
+      React.createElement("div",{className:"content"},React.createElement(Comp,{conn}))
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(React.createElement(App));
+</script>
+</body>
+</html>
