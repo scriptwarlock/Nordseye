@@ -1,4 +1,4 @@
-# Sync Space Cyber Management
+# Nordseye Cyber Management
 ## Setup Guide
 
 ### Requirements
