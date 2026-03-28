@@ -37,7 +37,7 @@ logging.basicConfig(
 )
 log = logging.getLogger("nordseye")
 
-# ─── Config ──────────────────────────────────────────────────────────────────
+# -- Config --
 AGENT_PORT  = 8765   # client PCs connect here (pure WebSocket)
 UI_PORT     = 8766   # browser dashboard: serves index.html via HTTP + WebSocket
 TICK_SECS   = 5      # how often to push updates to UI
@@ -46,7 +46,7 @@ TICK_SECS   = 5      # how often to push updates to UI
 _SCRIPT_DIR = Path(__file__).resolve().parent
 _INDEX_HTML  = _SCRIPT_DIR / "index.html"
 
-# ─── In-memory state ─────────────────────────────────────────────────────────
+# -- In-memory state --
 class Store:
     def __init__(self):
         self.clients: Dict[str, dict] = {}          # pc_id -> PC state
@@ -278,7 +278,7 @@ def save_store(store: Store):
 
 load_store(store)
 
-# ─── HTTP handler for the UI port ────────────────────────────────────────────
+# -- HTTP handler for the UI port --
 async def process_ui_request(connection, request):
     """
     Serve index.html for plain HTTP GET requests on the UI port.
@@ -319,7 +319,7 @@ async def send_to_agent(pc_id: str, msg: dict):
         except Exception:
             pass
 
-# ─── Broadcast state to all UI browsers ──────────────────────────────────────
+# -- Broadcast state to all UI browsers --
 async def broadcast_ui(msg: dict = None):
     if not store.ui_sockets:
         return
@@ -332,7 +332,7 @@ async def broadcast_ui(msg: dict = None):
             dead.add(ws)
     store.ui_sockets -= dead
 
-# ─── Handle agent (client PC) connections ────────────────────────────────────
+# -- Handle agent (client PC) connections --
 async def handle_agent(websocket: WebSocketServerProtocol):
     pc_id = None
     ip = websocket.remote_address[0] if websocket.remote_address else "?"
@@ -451,7 +451,7 @@ def _time_left(pc: dict) -> Optional[float]:
         return max(0.0, float(pc["timeout"] - used))
     return None
 
-# ─── Handle browser UI connections ───────────────────────────────────────────
+# -- Handle browser UI connections --
 async def handle_ui(websocket: WebSocketServerProtocol):
     ip = websocket.remote_address[0] if websocket.remote_address else "?"
     log.info(f"Browser UI connected from {ip}")
@@ -476,7 +476,7 @@ async def handle_ui_command(msg: dict, ws):
     pc_id = msg.get("pcId")
     reply = {"type": "ack", "cmd": cmd, "ok": True}
 
-    # ── Session control ──
+    # -- Session control --
     if cmd == "start":
         ok = store.start_session(pc_id, msg.get("tariff","t1"), msg.get("member"))
         if ok:
@@ -519,7 +519,7 @@ async def handle_ui_command(msg: dict, ws):
         for pid in store.clients:
             await send_to_agent(pid, {"type": "message", "text": msg.get("text","")})
 
-    # ── Tariff CRUD ──
+    # -- Tariff CRUD --
     elif cmd == "tariff_add":
         t = {**msg["tariff"], "id": str(uuid.uuid4())}
         store.tariffs.append(t)
@@ -528,7 +528,7 @@ async def handle_ui_command(msg: dict, ws):
     elif cmd == "tariff_del":
         store.tariffs = [t for t in store.tariffs if t["id"] != msg["id"]]
 
-    # ── Ticket CRUD ──
+    # -- Ticket CRUD --
     elif cmd == "ticket_add":
         qty = msg.get("qty", 1)
         tariff = msg.get("tariff", "t1")
@@ -549,7 +549,7 @@ async def handle_ui_command(msg: dict, ws):
     elif cmd == "ticket_del":
         store.tickets = [t for t in store.tickets if t["id"] != msg["id"]]
 
-    # ── Product CRUD ──
+    # -- Product CRUD --
     elif cmd == "product_add":
         p = {**msg["product"], "id": str(uuid.uuid4())}
         store.products.append(p)
@@ -574,7 +574,7 @@ async def handle_ui_command(msg: dict, ws):
                 "price": prod["price"] * amt, "time": time.time() * 1000,
             })
 
-    # ── Member CRUD ──
+    # -- Member CRUD --
     elif cmd == "member_add":
         raw = msg["member"]
         pwd = raw.pop("password", "")
@@ -595,7 +595,7 @@ async def handle_ui_command(msg: dict, ws):
             if m["id"] == msg["memberId"]:
                 m["credit"] = round(m["credit"] + msg["amount"], 2)
 
-    # ── Employee CRUD ──
+    # -- Employee CRUD --
     elif cmd == "employee_add":
         e = {**msg["employee"], "id": str(uuid.uuid4()), "active": True,
              "password": hashlib.sha256(msg["employee"]["password"].encode()).hexdigest()}
@@ -603,15 +603,15 @@ async def handle_ui_command(msg: dict, ws):
     elif cmd == "employee_del":
         store.employees = [e for e in store.employees if e["id"] != msg["id"]]
 
-    # ── Expense ──
+    # -- Expense --
     elif cmd == "expense_add":
         store.expenses.insert(0, {**msg["expense"], "id": str(uuid.uuid4()), "time": time.time() * 1000})
 
-    # ── Settings ──
+    # -- Settings --
     elif cmd == "settings_save":
         store.settings.update(msg["settings"])
 
-    # ── Login ──
+    # -- Login --
     elif cmd == "login":
         emp = store.validate_employee(msg.get("username",""), msg.get("password",""))
         await ws.send(json.dumps({
@@ -629,7 +629,7 @@ async def handle_ui_command(msg: dict, ws):
     await broadcast_ui()
     await ws.send(json.dumps(reply))
 
-# ─── Periodic state push ─────────────────────────────────────────────────────
+# -- Periodic state push --
 async def ticker():
     """Push live state to UI every TICK_SECS seconds."""
     while True:
@@ -659,7 +659,7 @@ async def db_saver():
         await asyncio.sleep(10)
         save_store(store)
 
-# ─── Entry point ─────────────────────────────────────────────────────────────
+# -- Entry point --
 async def main():
     log.info("=" * 50)
     log.info("  Nordseye Cyber Cafe Server")

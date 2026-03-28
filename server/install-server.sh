@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ─── Nordseye Server Install Script ──────────────────────────────────────────
+# Nordseye Server Install Script
 # Run this ONCE on the server machine to register and enable the systemd service.
 # Usage: chmod +x install-server.sh && ./install-server.sh
 
